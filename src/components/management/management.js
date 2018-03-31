@@ -13,7 +13,8 @@ import { fetchSummary,
         sendPayroll,
         fetchInstructorSalary,
         fetchCourse,
-        fetchAllInstructor
+        fetchAllInstructor,
+        manageCourse
       } from '../../actions';
 
 import SearchBar from '../helpers/search-bar';
@@ -176,7 +177,7 @@ class Management extends Component {
 
   render() {
     const { summary } = this.props;
-
+    
     // TODO + NOTE: findout and fix bug: code run in block else if (summary.data) without data
 
     if(summary.fetchInstructorSalary) {
@@ -200,19 +201,22 @@ class Management extends Component {
           <div>Loading....</div>
         )
       } else {
+        var summaryButtonClass = summary.fetchInstructorPayroll ? "btn btn-secondary" : "btn";
+        summaryButtonClass += " float-left btn__height--primary mt-1";
         return (
           <div className="container mt-3">
             <div className="row px-3">
               <button
-                className="btn btn-secondary float-left btn__height--primary mt-1"
+                className={summaryButtonClass}
                 onClick={event => this.props.fetchSummary(summary.startDate, summary.endDate, '')}
               >
                 <i className="fa fa-file-text-o mr-3"></i>Lương tất cả giảng viên
               </button>
+              
               <button className='btn btn-secondary mx-3 btn__height--primary mt-1' onClick={event => this.props.fetchAllInstructor()}>
                 <i className='fa fa-users mr-3'></i>Quản lý giảng viên
               </button>
-              <button className='btn btn-secondary btn__height--primary mt-1' onClick={event => this.props.fetchCourse()}>
+              <button className='btn btn-secondary btn__height--primary mt-1' onClick={event => this.props.manageCourse()}>
                 <i className='fa fa-book mr-3'></i>Quản lý khóa học
               </button>
               <User />
@@ -254,6 +258,7 @@ export default connect(mapStateToProps,
                           sendPayroll,
                           fetchInstructorSalary,
                           fetchCourse,
-                          fetchAllInstructor
+                          fetchAllInstructor,
+                          manageCourse
                         }
                      )(Management);
