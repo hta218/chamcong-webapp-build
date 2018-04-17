@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL } from './urls';
+import {ROOT_URL, API_URL} from './urls';
 
 export const FETCH_COURSE = 'fetch all course';
 

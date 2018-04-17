@@ -161,7 +161,8 @@ const rootReducer = combineReducers({
             },
             values: {
               course: "",
-              role: ""
+              role: "",
+              salary: 0
             }
           };
 

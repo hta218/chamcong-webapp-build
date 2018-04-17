@@ -9,19 +9,16 @@ import Select from 'react-select';
 import 'flatpickr/dist/themes/light.css';
 import Flatpickr from 'react-flatpickr';
 
-import _ from 'lodash';
-
 import { NotificationManager } from 'react-notifications';
 
 import { Modal, ModalHeader, ModalBody, Form, Label, Input, FormGroup } from 'reactstrap';
 
-import { hideAddIntructorModal, addInstructorRecord, fetchCourse } from '../../actions';
+import { hideAddIntructorModal, addInstructorRecord } from '../actions';
 
 class InstructorRecordNew extends Component{
   constructor(props) {
     super(props);
     this.onSubmit = this.onSubmit.bind(this);
-    this.props.fetchCourse();
   }
 
   updateCourse = (course) => {
@@ -62,20 +59,15 @@ class InstructorRecordNew extends Component{
   onSubmit(values) {
     const instructor = this.props.instructorRecordNew.instructor;
     const instructorId = instructor._id;
+    var course = values.course.value;
 
-    var course = values.course.value._id;
     var className = values.className;
-
     // reset class-name n course send to server
-    className = this.updateClassName(values.course.value.name, className);
+    className = this.updateClassName(course, className);
+    course = this.updateCourse(course);
 
     const role = values.role.value;
-    var recordDate = values.recordDate;
-
-    // if recordDate does not contain hour => moment set hour by server's time => -1 day 
-    if (recordDate.toString().length === 10) {
-      recordDate += 'T00:00:00.001Z';
-    }
+    const recordDate = values.recordDate;
 
     this.props.hideAddIntructorModal();
     const infoCallback = () => {
@@ -103,32 +95,8 @@ class InstructorRecordNew extends Component{
     );
   }
 
-  renderAddRecordForm(instructor) {
+  renderAddRecordForm() {
     const { handleSubmit } = this.props;
-    let courseOptions = !_.isEmpty(instructor.courses) ? instructor.courses : this.props.instructorRecordNew.allCourses;
-
-    // check if courseOptions contain course-ids or course-objects
-    // if contain course-ids => query in this.props.instructorRecordNew.allCourses to get all course-objects
-
-    let updatedCourseOptions = [];
-
-    _.forEach(courseOptions, (course) => {
-      if (typeof(course) === "string") {
-        _.forEach(this.props.instructorRecordNew.allCourses, (courseObject) => {
-          if (courseObject._id === course) {
-            updatedCourseOptions.push({
-              'value': courseObject,
-              'label': courseObject.name
-            });
-          }
-        });
-      } else {
-        updatedCourseOptions.push({
-          'value': course,
-          'label': course.name
-        });
-      }
-    });
 
     return (
       <div>
@@ -136,7 +104,6 @@ class InstructorRecordNew extends Component{
           <Field
             name="course"
             label="Khóa học"
-            courseOptions={updatedCourseOptions}
             component = {this.renderSelectCourseField}
           />
           <Field
@@ -172,15 +139,15 @@ class InstructorRecordNew extends Component{
     }
 
     return (
-      <Modal
-          isOpen={instructorRecordNew.isOpen}
-          toggle={this.props.hideAddIntructorModal}
-        >
-        <ModalHeader>{instructor.name}</ModalHeader>
-          <ModalBody>
-              {this.renderAddRecordForm(instructor)}
-          </ModalBody>
-      </Modal>
+          <Modal
+              isOpen={instructorRecordNew.isOpen}
+              toggle={this.props.hideAddIntructorModal}
+            >
+            <ModalHeader>{instructor.name}</ModalHeader>
+              <ModalBody>
+                  {this.renderAddRecordForm()}
+              </ModalBody>
+          </Modal>
     );
   }
 
@@ -222,11 +189,40 @@ class InstructorRecordNew extends Component{
   renderSelectCourseField(field) {
     const {meta: {touched, error}} = field;
 
+    const courseOptions = [
+      {value: "Android", label: "Android"},
+      {value: "C4E", label: "C4E"},
+      {value: "C4K", label: "C4K"},
+      {value: "C4K Advance", label: "C4K Advance"},
+      {value: "C4K F", label: "C4K F"},
+      {value: "CFA 1", label: "CFA 1"},
+      {value: "CFA 2", label: "CFA 2"},
+      {value: "CI", label: "CI"},
+      {value: "Foundation", label: "Foundation"},
+      {value: "Game", label: "Game"},
+      {value: "GMAT", label: "GMAT"},
+      {value: "GRE", label: "GRE"},
+      {value: "IELTS Intensive", label: "IELTS Intensive"},
+      {value: "IELTS Advance", label: "IELTS Advance"},
+      {value: "IELTS L&R Advance", label: "IELTS L&R Advance"},
+      {value: "IELTS S Advance", label: "IELTS S Advance"},
+      {value: "IELTS Pre-Inter", label: "IELTS Pre-Inter"},
+      {value: "IELTS L&R Pre-Inter", label: "IELTS L&R Pre-Inter"},
+      {value: "IELTS S Pre-Inter", label: "IELTS S Pre-Inter"},
+      {value: "IELTS Inter", label: "IELTS Inter"},
+      {value: "IELTS L&R Inter", label: "IELTS L&R Inter"},
+      {value: "IELTS S Inter", label: "IELTS S Inter"},
+      {value: "iOS", label: "iOS"},
+      {value: "Pronunciation", label: "Pronunciation"},
+      {value: "Web", label: "Web"},
+      {value: "RN", label: "React Native"},
+    ];
+
     return (
       <FormGroup>
         <label className="h5">{field.label}</label>
         <Select
-          options = {field.courseOptions}
+          options = {courseOptions}
           {...field.input} onBlur = {() => field.input.onBlur(field.value)}
         />
         <div className="form-text text-danger">
@@ -247,16 +243,16 @@ class InstructorRecordNew extends Component{
   }
 }
 
-function mapStateToProps({ instructorRecordNew }) {
-  return { instructorRecordNew };
+function mapStateToProps({instructorRecordNew}) {
+  return {instructorRecordNew};
 }
 
 function validate(values) {
   const errors = {};
-  if (!values.course || !values.course.value) {
+  if (!values.course || !values.course.value || !values.course.value.replace(/\s/g, '')) {
     errors.course = 'Chưa chọn khóa học';
   }
-
+  // TODO check className length
   if (!values.className || !values.className.replace(/\s/g, '')) {
     errors.className = 'Chưa nhập lớp học';
   }
@@ -270,7 +266,8 @@ function validate(values) {
   return errors;
 }
 
-const tempComponent = connect(mapStateToProps, { hideAddIntructorModal, addInstructorRecord, fetchCourse })(InstructorRecordNew);
+const tempComponent = connect(mapStateToProps,
+  { hideAddIntructorModal, addInstructorRecord })(InstructorRecordNew);
 
 export default reduxForm({
   validate,
