@@ -1,4 +1,5 @@
-import { FETCH_SUMMARY,
+import { MANAGE_COURSE,
+        FETCH_SUMMARY,
         FETCH_INSTRUCTOR_PAYROLL,
         FETCH_INSTRUCTOR_SALARY,
         UPDATE_INSTRUCTOR_SALARY,
@@ -9,7 +10,8 @@ import { FETCH_SUMMARY,
         ADD_NEW_COURSE,
         UPDATE_COURSE,
         REMOVE_COURSE,
-        FETCH_INSTRUCTOR
+        FETCH_INSTRUCTOR,
+        ADD_NEW_INSTRUCTOR_SALARY
       } from '../actions';
 
 import _ from 'lodash';
@@ -23,12 +25,13 @@ var defaultState = {
   manageInstructor: false
 }
 
-export default function(state = defaultState, action) {
+export default function(state=defaultState, action) {
   var newState = null;
   switch (action.type) {
     case FETCH_SUMMARY:
       return {...state,
               fetchInstructorPayroll: false,
+              fetchInstructorSalary: false,
               manageCourse: false,
               manageInstructor: false,
               data: action.payload.data
@@ -47,6 +50,7 @@ export default function(state = defaultState, action) {
       return {...state, results: action.payload.data}
     case ADD_INSTRUCTOR_RECORD:
       newState = _.cloneDeep(state);
+      
       if (action.payload) {
         if (action.payload.data) {
           // check if reducer is summary
@@ -55,21 +59,20 @@ export default function(state = defaultState, action) {
             var newRecord = action.payload.data.results;
             var salary = action.payload.data.salary;
 
-            newState.data.instructor.payrollDetails = _.concat(newState.data.instructor.payrollDetails,
-                newRecord);
+            newState.data.payrollDetails = _.concat(newState.data.payrollDetails, newRecord);
 
             // update payroll-details table
             var isContain = false; // to check if new record is in/not-in summary-payroll table
             newState.data.payroll.forEach((payrollSummary) => {
-             if (payrollSummary.className === newRecord.className &&
-              payrollSummary.role === newRecord.role) {
-               // increase totalClass by 1
-               payrollSummary.totalClass += 1;
-               payrollSummary.totalSalary += payrollSummary.salary;
-               isContain = !isContain;
-               return;
-               }
+              if (payrollSummary.className === newRecord.className && payrollSummary.role === newRecord.role) {
+                // increase totalClass by 1
+                payrollSummary.totalClass += 1;
+                payrollSummary.totalSalary += payrollSummary.salary;
+                isContain = !isContain;
+                return;
+              }
             });
+
             if (!isContain) {
               var newPayrollSummary = {
                 className : newRecord.className,
@@ -123,6 +126,7 @@ export default function(state = defaultState, action) {
       break;
     case FETCH_COURSE:
       let manageCourse = state.manageInstructor || state.fetchInstructorPayroll ? false : true;
+      
       return {...state, manageCourse: manageCourse, courseData: action.payload.data};
     case ADD_NEW_COURSE:
       newState = _.cloneDeep(state);
@@ -170,7 +174,29 @@ export default function(state = defaultState, action) {
       }
       break;
     case FETCH_INSTRUCTOR:
-      return {...state, manageInstructor: true, instructorData: action.payload.data};
+      return {...state, 
+              manageInstructor: true, 
+              manageCourse: false,
+              fetchInstructorPayroll: false,
+              fetchInstructorSalary: false,
+              instructorData: action.payload.data};
+    case MANAGE_COURSE:
+        return {...state,
+          manageInstructor: false,
+          fetchInstructorPayroll: false,
+          fetchInstructorSalary: false,
+          manageCourse: true,
+          courseData: action.payload.data
+        }
+    case ADD_NEW_INSTRUCTOR_SALARY:
+      newState = _.cloneDeep(state);
+      var savedSalary = action.payload.data.savedSalary;
+      
+      var instructor = newState.data.instructor;
+      instructor.salaries.push(savedSalary);
+      newState.data.instructor = instructor;
+
+      return newState;
     default:
       return state;
   }

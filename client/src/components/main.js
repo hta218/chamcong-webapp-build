@@ -17,7 +17,7 @@ class Main extends Component {
   render() {
     const loginCredentials = this.props.loginCredentials;
     if (loginCredentials.loggedIn) {
-      if (loginCredentials.role === 'manager') {
+      if (loginCredentials.role === 'manager' || loginCredentials.role === 'accountant') {
         return <Management />
       } else if (loginCredentials.role === 'receptionist') {
         return <Checkin />
