@@ -53,7 +53,7 @@ export default function(state=defaultState, action) {
       
       if (action.payload) {
         if (action.payload.data) {
-          // check if reducer is summary
+          // check if reducer is "summary-reducer"
           if (newState.startDate && newState.endDate) {
             // add new-record to payroll-details table
             var newRecord = action.payload.data.results;
@@ -85,7 +85,7 @@ export default function(state=defaultState, action) {
               newState.data.payroll.push(newPayrollSummary);
             }
             // update total-month-salary
-            newState.data.instructor.totalMonthSalary += salary;
+            newState.data.totalMonthSalary += salary;
             ///////////////////////////
           }
         }
@@ -95,7 +95,7 @@ export default function(state=defaultState, action) {
       if (action.payload.data) {
         if (action.payload.data.foundRecord) {
           newState = _.cloneDeep(state);
-          // check if reducer is summary
+          // check if reducer is "summary-reducer"
           if (newState.startDate && newState.endDate) {
             const recordToRemove = action.payload.data.foundRecord;
 
@@ -112,11 +112,11 @@ export default function(state=defaultState, action) {
                   _.pull(newState.data.payroll, payrollSummary);
                 }
                 // update total-month-salary
-                newState.data.instructor.totalMonthSalary -= payrollSummary.salary;
+                newState.data.totalMonthSalary -= payrollSummary.salary;
               }
             })
             // remove recordToRemove from payroll-details table
-            _.remove(newState.data.instructor.payrollDetails, (record) => {
+            _.remove(newState.data.payrollDetails, (record) => {
               return record._id === recordToRemove._id;
             });
           }
