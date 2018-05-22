@@ -50,7 +50,6 @@ export default function(state=defaultState, action) {
       return {...state, results: action.payload.data}
     case ADD_INSTRUCTOR_RECORD:
       newState = _.cloneDeep(state);
-      
       if (action.payload) {
         if (action.payload.data) {
           // check if reducer is summary
@@ -59,20 +58,21 @@ export default function(state=defaultState, action) {
             var newRecord = action.payload.data.results;
             var salary = action.payload.data.salary;
 
-            newState.data.payrollDetails = _.concat(newState.data.payrollDetails, newRecord);
+            newState.data.instructor.payrollDetails = _.concat(newState.data.instructor.payrollDetails,
+                newRecord);
 
             // update payroll-details table
             var isContain = false; // to check if new record is in/not-in summary-payroll table
             newState.data.payroll.forEach((payrollSummary) => {
-              if (payrollSummary.className === newRecord.className && payrollSummary.role === newRecord.role) {
-                // increase totalClass by 1
-                payrollSummary.totalClass += 1;
-                payrollSummary.totalSalary += payrollSummary.salary;
-                isContain = !isContain;
-                return;
-              }
+             if (payrollSummary.className === newRecord.className &&
+              payrollSummary.role === newRecord.role) {
+               // increase totalClass by 1
+               payrollSummary.totalClass += 1;
+               payrollSummary.totalSalary += payrollSummary.salary;
+               isContain = !isContain;
+               return;
+               }
             });
-
             if (!isContain) {
               var newPayrollSummary = {
                 className : newRecord.className,

@@ -101,6 +101,6 @@ export function removeCourse(course, deletedCallback) {
   var courseId = course._id;
   return {
     type: REMOVE_COURSE,
-    payload: axios.delete(`${REMOVE_COURSE_API}/${courseId}`).then(removeInterceptor)
+    payload: axios.delete(`${REMOVE_COURSE_API}${courseId}`).then(removeInterceptor)
   };
 }
