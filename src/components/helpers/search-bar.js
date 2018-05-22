@@ -5,7 +5,8 @@ import _ from 'lodash';
 import { searchInstructor,
           showSearchLoading,
           hideSearchLoading,
-          fetchSummary
+          fetchSummary,
+          fetchAllInstructor
         } from '../../actions';
 
 import Loading from './loading';
@@ -43,9 +44,19 @@ class SearchBar extends Component {
     var startDate = this.props.summary.startDate;
     var endDate = this.props.summary.endDate;
 
-    if (startDate && endDate) {
+    if (this.props.summary.manageInstructor) {
+      this.props.fetchAllInstructor(searchName).then(result => {
+        if (result.payload.data.success) {
+          finishSearchCallback();
+        }
+      }).catch(err => {
+        console.log(err);
+      });
+
+    } else if (startDate && endDate) {
       this.props.fetchSummary(startDate, endDate, searchName, finishSearchCallback);
       this.props.summary.name = searchName;
+
     } else {
       this.props.searchInstructor(searchName, finishSearchCallback);
     }
@@ -72,8 +83,8 @@ class SearchBar extends Component {
     return (
       <div id="search-bar" className="row px-0 col-md-7 ml-1">
         <input placeholder="Nhập tên giảng viên" type="text" className="col-md-11"
-         onChange={event => this.handleSearch(event.target.value)}></input>
-         {this.renderSearchIcon()}
+          onChange={event => this.handleSearch(event.target.value)}></input>
+          {this.renderSearchIcon()}
      </div>
     )
   }
@@ -83,9 +94,8 @@ function mapStateToProps({ searchBar, summary }) {
   return { searchBar, summary };
 }
 
-export default connect(mapStateToProps, { searchInstructor,
-                                          showSearchLoading,
-                                          hideSearchLoading,
-                                          fetchSummary 
-                                        }
-                                        )(SearchBar);
+export default connect(mapStateToProps, { searchInstructor, 
+                                          showSearchLoading, 
+                                          hideSearchLoading, 
+                                          fetchSummary,
+                                          fetchAllInstructor })(SearchBar);

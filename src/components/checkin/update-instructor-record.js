@@ -10,11 +10,10 @@ import 'flatpickr/dist/themes/light.css';
 import Flatpickr from 'react-flatpickr';
 
 import _ from 'lodash';
-import moment from 'moment';
 
 import { NotificationManager } from 'react-notifications';
 
-import { Modal, ModalHeader, ModalBody, Form, Label, Input, FormGroup, CheckBox } from 'reactstrap';
+import { Modal, ModalHeader, ModalBody, Form, Label, Input, FormGroup } from 'reactstrap';
 
 import { hideAddIntructorModal, addInstructorRecord, fetchCourses } from '../../actions';
 
@@ -25,7 +24,7 @@ class InstructorRecordNew extends Component{
     this.props.fetchCourses();
   }
 
-  updateCourse(course){
+  updateCourse = (course) => {
     if (course.indexOf('IELTS L&R') >= 0) {
       course = 'IELTS L&R';
     }
@@ -43,7 +42,7 @@ class InstructorRecordNew extends Component{
     return course;
   }
 
-  getClassName(course, classNo){
+  updateClassName = (course, className) => {
     var preName = ' ';
 
     if (course.indexOf('CFA') >= 0) {
@@ -53,11 +52,11 @@ class InstructorRecordNew extends Component{
       preName = '';
     }
 
-    if (Number(classNo) < 10) {
-      classNo = classNo.replace(/0/g, '');
+    if (Number(className) < 10) {
+      className = className.replace(/0/g, '');
     }
 
-    return course + preName + classNo;
+    return course + preName + className;
   }
 
   onSubmit(values) {
@@ -65,25 +64,16 @@ class InstructorRecordNew extends Component{
     const instructorId = instructor._id;
 
     var course = values.course.value._id;
-
-    var classNo = values.classNo;
-
-    var forcedSave = values.forcedSave;
+    var className = values.className;
 
     // reset class-name n course send to server
-    var className = this.getClassName(values.course.value.name, classNo);
+    className = this.updateClassName(values.course.value.name, className);
 
     const role = values.role.value;
     var recordDate = values.recordDate;
 
-    // don't khnow wtf happened with react-flatpickr, but when changing month it's return recordDate in an array ??
-    if (_.isArray(recordDate)) {
-      recordDate = recordDate[0];
-    }
-
     // if recordDate does not contain hour => moment set hour by server's time => -1 day 
-    if (!moment(recordDate).hour() && !moment(recordDate).minute() && !moment(recordDate).second()) {
-      recordDate = moment(recordDate).format('YYYY-MM-DD');
+    if (recordDate.toString().length === 10) {
       recordDate += 'T00:00:00.001Z';
     }
 
@@ -96,18 +86,16 @@ class InstructorRecordNew extends Component{
       NotificationManager.success(`Đã chấm công cho: ${instructor.lastName} ${instructor.firstName}`);
     };
 
-    const errorCallback = (message) => {
-      NotificationManager.error(`Không chấm được cho: ${instructor.lastName} ${instructor.firstName}. ${message}`);
+    const errorCallback = () => {
+      NotificationManager.error(`Không chấm được cho: ${instructor.lastName} ${instructor.firstName}`);
     };
 
     this.props.addInstructorRecord({
       instructorId,
       course,
       className,
-      classNo,
       role,
-      recordDate,
-      forcedSave
+      recordDate
     },
       infoCallback,
       successCallback,
@@ -152,7 +140,7 @@ class InstructorRecordNew extends Component{
             component = {this.renderSelectCourseField}
           />
           <Field
-            name="classNo"
+            name="className"
             label="Lớp"
             component = {this.renderInputField}
           />
@@ -166,11 +154,6 @@ class InstructorRecordNew extends Component{
             label="Ngày"
             component = {this.renderDateField}
           />
-          <Field
-            name="forcedSave"
-            label="Chấp nhận quá số buổi"
-            component = {this.renderCheckBoxField}
-          />
           <div className="mt-2">
             <button type="submit" className="btn btn-primary">Hoàn tất</button>
           </div>
@@ -178,6 +161,7 @@ class InstructorRecordNew extends Component{
       </div>
     );
   }
+
 
   render() {
     const instructorRecordNew = this.props.instructorRecordNew;
@@ -200,22 +184,11 @@ class InstructorRecordNew extends Component{
     );
   }
 
-  renderCheckBoxField(field) {
-    return (
-      <FormGroup check className="my-4">
-        <Label check className="h5">
-          <Input type="checkbox" {...field.input} /> {' '}
-          {field.label}
-        </Label>
-      </FormGroup>
-    );
-  }
-
   renderInputField(field) {
     const {meta: {touched, error}} = field;
-    const classNo = (touched && error) ? "has-danger" : "";
+    const className = (touched && error) ? "has-danger" : "";
     return (
-      <FormGroup className={classNo} >
+      <FormGroup className={className} >
         <Label className="h5">{field.label}</Label>
         <Input className="form-control" type="text" {...field.input}/>
         <div className="form-text text-danger">
@@ -284,11 +257,11 @@ function validate(values) {
     errors.course = 'Chưa chọn khóa học';
   }
 
-  if (!values.classNo || !values.classNo.replace(/\s/g, '')) {
-    errors.classNo = 'Chưa nhập lớp học';
+  if (!values.className || !values.className.replace(/\s/g, '')) {
+    errors.className = 'Chưa nhập lớp học';
   }
-  else if (/[^0-9]/.test(values.classNo)) {
-    errors.classNo = 'Chỉ nhập số';
+  else if (/[^0-9]/.test(values.className)) {
+    errors.className = 'Chỉ nhập số';
   }
 
   if (!values.role || !values.role.value || !values.role.value.replace(/\s/g, '')) {
@@ -305,8 +278,7 @@ export default reduxForm({
   destroyOnUnmount: false,
   initialValues : {
     course: {value: "", label: "Chọn khóa học..."},
-    classNo: "",
-    forcedSave: false,
+    className: "",
     recordDate: new Date().toISOString(),
     role: {value: "instructor", label: "Giảng Viên"}
   }
